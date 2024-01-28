@@ -6,7 +6,7 @@ from pathlib import Path
 from datetime import datetime
 
 # Configure batch size
-sem = asyncio.Semaphore(1)
+sem = asyncio.Semaphore(10)
 
 def run(argv, cwd=None):
     cmd_as_str = " ".join(argv)
@@ -28,9 +28,15 @@ async def grade(ccid: str, repo: str, script_file: str):
 
             # Run marking script
             cmd = subprocess.run(["./" + script_file, "."], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=d)
-            if(cmd.returncode): logging.error(f"Failed to run '{' '.join(argv)}' (code {cmd.returncode})")
-            if(cmd.stderr): logging.error(f"Failed to run '{' '.join(argv)}': {cmd.stderr}")
-            return (ccid, cmd.stdout)
+
+            if(cmd.returncode): 
+                logging.error(f"Failed to run marking script (code {cmd.returncode})")
+                return (ccid, f"ERROR: {cmd.returncode}")
+            if(cmd.stderr): 
+                logging.error(f"Failed to run marking script\n{cmd.stderr}")
+                return (ccid, f"ERROR: {cmd.stderr}")
+
+            return (ccid, cmd.stdout.strip())
 
 # Read CSV for CCIDs and GitHub repositories
 async def gather(csv_file: str, script_file: str, out_file: str):
