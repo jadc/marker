@@ -22,35 +22,40 @@ async def grade(ccid: str, repo: str, script_file: str):
         with tempfile.TemporaryDirectory() as d:
             logging.debug(f"Created temporary directory, '{d}'")
 
-            # Clone student repository
             run(["git", "clone", repo, "."], cwd=d) 
-            #logging.debug(f"Cloned student repository '{repo}'")
-
-            # Get marking script
             run(["cp", script_file, d])
-            #logging.debug("Copied script into marking environment")
             run(["chmod", "+x", script_file], cwd=d)
-            #logging.debug("Made script executable")
 
             # Run marking script
-            with open(ccid + ".txt", "a", buffering=1) as f:
-                cmd = subprocess.run(argv, stdout=f, cwd=cwd, shell=True)
-                if(cmd.returncode): logging.error(f"Failed to run '{' '.join(argv)}' (code {cmd.returncode})")
+            cmd = subprocess.run(["./" + script_file, "."], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=d)
+            if(cmd.returncode): logging.error(f"Failed to run '{' '.join(argv)}' (code {cmd.returncode})")
+            if(cmd.stderr): logging.error(f"Failed to run '{' '.join(argv)}': {cmd.stderr}")
+            return (ccid, cmd.stdout)
 
 # Read CSV for CCIDs and GitHub repositories
-async def gather(csv_file: str, script_file: str):
+async def gather(csv_file: str, script_file: str, out_file: str):
     with open(csv_file) as f:
         reader = csv.reader(f)
         next(reader)  # skip headings
         submissions = [ grade(x[4], x[6], script_file) for x in reader if x[4] and x[6] ]
-    await asyncio.gather(*submissions)
+    results = await asyncio.gather(*submissions)
+
+    with open(out_file, "w") as f:
+        writer = csv.writer(f)
+        writer.writerow(["CCID", "Grade"])
+        writer.writerows(results)
+    logging.info(f"Grades written to '{out_file}'")
 
 if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)s %(levelname)s | %(message)s', level=logging.DEBUG, datefmt='%Y-%m-%d %H:%M:%S')
-
     p = argparse.ArgumentParser()
     p.add_argument("csv", type=str, help="submissions csv (from 'Download grades' on GitHub Classroom)")
     p.add_argument("script", type=str, help="any script (with a shebang), run in root of student repo")
+    p.add_argument("-o", "--output", type=str, default="grades.csv", help="output csv including CCID and corresponding lab grade")
+    p.add_argument("-v", "--verbose", action="store_true")
     args = p.parse_args()
 
-    asyncio.run(gather(args.csv, args.script))
+    l = logging.INFO
+    if(args.verbose): l = logging.DEBUG
+    logging.basicConfig(format='%(asctime)s %(levelname)s | %(message)s', level=l, datefmt='%Y-%m-%d %H:%M:%S')
+
+    asyncio.run(gather(args.csv, args.script, args.output))
