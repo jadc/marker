@@ -35,18 +35,19 @@ async def grade(ccid: str, repo: str, script_file: str):
                 logging.error(f"Failed to run marking script\n{cmd.stderr}")
                 return (ccid, f"ERROR: {cmd.stderr}")
 
-            grade = cmd.stdout.strip().split("\n")[-1].split("/")[0]
-            return (ccid, grade, cmd.stdout.strip().replace("\n", " "))
+            output = cmd.stdout.strip().split("\n")
+            grade = output.pop().split("/")[0]
+            return (ccid, grade, ". ".join(output))
 
 # Read CSV for CCIDs and GitHub repositories
 async def gather(csv_file: str, script_file: str, out_file: str):
-    with open(csv_file, "r", newline="", encoding="utf-8") as f:
+    with open(Path(csv_file), "r", newline="", encoding="utf-8") as f:
         reader = csv.reader(f)
         next(reader)  # skip headings
         submissions = [ grade(x[4], x[6], script_file) for x in reader if x[4] and x[6] ]
     results = await asyncio.gather(*submissions)
 
-    with open(out_file, "w", newline="", encoding="utf-8") as f:
+    with open(Path(out_file), "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["CCID", "Grade", "Feedback"])
         writer.writerows(results)
