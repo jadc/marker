@@ -28,6 +28,8 @@ async def grade(ccid: str, repo: str, script_file: str):
             # Run marking script
             cmd = subprocess.run(["./" + script_file, "."], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=d)
 
+            if(cmd.stdout): 
+                logging.debug(f"Marking script stdout: {cmd.stdout}")
             if(cmd.returncode): 
                 logging.error(f"Failed to run marking script (code {cmd.returncode})")
                 return (ccid, f"ERROR: {cmd.returncode}")
@@ -37,6 +39,7 @@ async def grade(ccid: str, repo: str, script_file: str):
 
             output = cmd.stdout.strip().split("\n")
             grade = output.pop().split("/")[0]
+
             return (ccid, grade, ". ".join(output))
 
 # Read CSV for CCIDs and GitHub repositories
