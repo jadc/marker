@@ -8,11 +8,10 @@ from datetime import datetime
 sem = asyncio.Semaphore(1)
 
 def run(argv, cwd=None):
-    cmd_as_str = " ".join(argv)
-    logging.debug(f"Running '{cmd_as_str}' in {cwd}")
+    logging.debug(f"Running {argv} in {cwd}")
     cmd = subprocess.run(argv, cwd=cwd, capture_output=True, text=True)
     if(cmd.stdout): logging.debug(cmd.stdout)
-    if(cmd.returncode): logging.error(f"Failed to run '{cmd_as_str}' ({cmd.returncode}): {cmd.stderr}")
+    if(cmd.returncode): logging.error(f"CODE {cmd.returncode} WITH {argv}\n{cmd.stderr}")
     return cmd
 
 async def grade(ccid: str, repo: str, script_file: str):
