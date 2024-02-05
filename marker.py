@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # marker by jadc
 MAX_POINTS = 10
+DELAY_SEC = 10
 
-import re, logging, argparse, csv, asyncio, tempfile, subprocess
+import time, re, logging, argparse, csv, asyncio, tempfile, subprocess
 from pathlib import Path
 
 sem = asyncio.Semaphore(1)
@@ -43,7 +44,8 @@ def feedback(repo: str, stdout: str):
     args = ["gh", "issue", "create", "--title", "Feedback", "-R", repo, "-F", "-"]
     cmd = subprocess.run(args, stdout=subprocess.PIPE, input=stdout, text=True)
     url = cmd.stdout.strip().replace("https://", "")
-    logging.debug(f"Published feedback to '{url}'")
+    logging.debug(f"Published feedback to '{url}'; waiting {DELAY_SEC} s to avoid rate limit")
+    time.sleep(DELAY_SEC)
     return url
 
 # Read CSV for CCIDs and GitHub repositories
