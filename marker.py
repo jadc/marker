@@ -34,7 +34,7 @@ async def grade(ccid: str, repo: str, script_file: str, publish: bool):
             else:       return (ccid, extract_mark(cmd.stdout), "Run with '--publish' for feedback")
 
 def extract_mark(stdout: str):
-    r = re.search(r"Total: (\d+)/(\d+)", stdout)
+    r = re.search(r"Total: *(\d+)/(\d+)", stdout)
     return round((float(r.group(1)) / float(r.group(2)))*MAX_POINTS, 2)
 
 # Creates issue on GitHub repo containing feedback
