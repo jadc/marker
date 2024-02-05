@@ -2,7 +2,14 @@
 # by jadc
 
 from pathlib import Path
-import argparse, csv, subprocess
+import argparse, csv
+
+def isfloat(num: str):
+    try:
+        float(num)
+        return True
+    except:
+        return False
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -19,7 +26,7 @@ if __name__ == "__main__":
 
     # Tweak lab CSV if matches CCID in demo grade CSV
     # (I know this looks awful)
-    labs = [[x[0], round(float(x[1])/2 + demos[x[0]], 2), f"(Demo: {demos[x[0]]}/5) {x[2]}"] if x[1].isdigit() and x[0] in demos else x for x in labs]
+    labs = [[x[0], round(float(x[1])/2 + demos[x[0]], 2), f"(Demo: {demos[x[0]]}/5) {x[2]}"] if isfloat(x[1]) and x[0] in demos else x for x in labs]
 
     with open(Path(args.output), "w", newline="", encoding="utf-8") as f:
         csv.writer(f).writerows(labs)
