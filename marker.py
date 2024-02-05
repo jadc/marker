@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # marker by jadc
 MAX_POINTS = 10
-DELAY_SEC = 10
 
-import time, re, logging, argparse, csv, asyncio, tempfile, subprocess
+import re, logging, argparse, csv, asyncio, tempfile, subprocess
 from pathlib import Path
 
 sem = asyncio.Semaphore(1)
@@ -27,12 +26,28 @@ async def grade(ccid: str, repo: str, script_file: str, publish: bool):
                 return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
 
             # Run marking script in current directory, giving it submission directory
-            cmd = run( ["./" + script_file, Path(d)] )
-            if(cmd.returncode):
-                return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
+            marking_cmd = run( ["./" + script_file, Path(d)] )
+            if(marking_cmd.returncode):
+                return (ccid, f"ERROR ({marking_cmd.returncode}) SEE LOG")
             
-            if publish: return (ccid, extract_mark(cmd.stdout), feedback(repo, cmd.stdout))
-            else:       return (ccid, extract_mark(cmd.stdout), "Run with '--publish' for feedback")
+            # Upload feedback to branch on student repository
+            if publish:
+                # Create empty branch
+                run(["git", "switch", "--orphan", "feedback"], cwd=d)
+
+                # Write feedback to file
+                with open(Path(d) / "README.md", "w", encoding="utf-8") as f:
+                    f.write("```diff\n")
+                    f.write(marking_cmd.stdout)
+                    f.write("\n```")
+
+                # Add feedback file
+                run(["git", "add", "."], cwd=d)
+                run(["git", "commit", "-m", "Feedback"], cwd=d)
+                run(["git", "push", "-u", "origin", "feedback"], cwd=d)
+                logging.info("Pushed feedback to student's repository")
+            
+            return (ccid, extract_mark(marking_cmd.stdout), "")
 
 def extract_mark(stdout: str):
     r = re.search(r"Total: *(\d+)/(\d+)", stdout)
@@ -45,7 +60,6 @@ def feedback(repo: str, stdout: str):
     cmd = subprocess.run(args, stdout=subprocess.PIPE, input=stdout, text=True)
     url = cmd.stdout.strip().replace("https://", "")
     logging.debug(f"Published feedback to '{url}'; waiting {DELAY_SEC} s to avoid rate limit")
-    time.sleep(DELAY_SEC)
     return url
 
 # Read CSV for CCIDs and GitHub repositories
