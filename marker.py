@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # marker by jadc
 MAX_POINTS = 10
+FEEDBACK_FILE = "README.md"
 
 import re, logging, argparse, csv, asyncio, tempfile, subprocess
 from pathlib import Path
@@ -36,13 +37,13 @@ async def grade(ccid: str, repo: str, script_file: str, publish: bool):
                 run(["git", "switch", "--orphan", "feedback"], cwd=d)
 
                 # Write feedback to file
-                with open(Path(d) / "README.md", "w", encoding="utf-8") as f:
+                with open(Path(d) / FEEDBACK_FILE, "w", encoding="utf-8") as f:
                     f.write("```diff\n")
                     f.write(marking_cmd.stdout)
                     f.write("\n```")
 
                 # Add feedback file
-                run(["git", "add", "."], cwd=d)
+                run(["git", "add", FEEDBACK_FILE], cwd=d)
                 run(["git", "commit", "-m", "Feedback"], cwd=d)
                 run(["git", "push", "-u", "origin", "feedback"], cwd=d)
                 logging.info("Pushed feedback to student's repository")
@@ -52,15 +53,6 @@ async def grade(ccid: str, repo: str, script_file: str, publish: bool):
 def extract_mark(stdout: str):
     r = re.search(r"Total: *(\d+)/(\d+)", stdout)
     return round((float(r.group(1)) / float(r.group(2)))*MAX_POINTS, 2)
-
-# Creates issue on GitHub repo containing feedback
-# Returns URL to issue
-def feedback(repo: str, stdout: str):
-    args = ["gh", "issue", "create", "--title", "Feedback", "-R", repo, "-F", "-"]
-    cmd = subprocess.run(args, stdout=subprocess.PIPE, input=stdout, text=True)
-    url = cmd.stdout.strip().replace("https://", "")
-    logging.debug(f"Published feedback to '{url}'; waiting {DELAY_SEC} s to avoid rate limit")
-    return url
 
 # Read CSV for CCIDs and GitHub repositories
 async def gather(csv_file: str, script_file: str, out_file: str, publish: bool):
