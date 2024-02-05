@@ -77,9 +77,6 @@ if __name__ == "__main__":
     p.add_argument("-v", "--verbose", action="store_true")
     args = p.parse_args()
 
-    # Test permissions of script
-    run(["chmod", "+x", args.script])
-
     l = logging.INFO
     if(args.verbose): l = logging.DEBUG
     logging.basicConfig(format='%(asctime)s %(levelname)s | %(message)s', level=l, datefmt='%Y-%m-%d %H:%M:%S')
