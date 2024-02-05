@@ -77,6 +77,13 @@ if __name__ == "__main__":
     p.add_argument("-v", "--verbose", action="store_true")
     args = p.parse_args()
 
+    # Test permissions of script
+    try:
+        subprocess.run(["./", args.script], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except PermissionError:
+        print(f"'{args.script}' is lacking executable permissions")
+        exit(1)
+
     l = logging.INFO
     if(args.verbose): l = logging.DEBUG
     logging.basicConfig(format='%(asctime)s %(levelname)s | %(message)s', level=l, datefmt='%Y-%m-%d %H:%M:%S')
