@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     # Tweak lab CSV if matches CCID in demo grade CSV
     # (I know this looks awful)
-    labs = [[x[0], round(float(x[1])/2 + demos[x[0]], 2), f"{x[2]} ({demos[x[0]]}/5 demo)"] if x[1].isdigit() and x[0] in demos else x for x in labs]
+    labs = [[x[0], round(float(x[1])/2 + demos[x[0]], 2), f"(Demo: {demos[x[0]]}/5) {x[2]}"] if x[1].isdigit() and x[0] in demos else x for x in labs]
 
     with open(Path(args.output), "w", newline="", encoding="utf-8") as f:
         csv.writer(f).writerows(labs)
