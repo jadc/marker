@@ -78,11 +78,7 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     # Test permissions of script
-    try:
-        subprocess.run(["./", args.script], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except PermissionError:
-        print(f"'{args.script}' is lacking executable permissions")
-        exit(1)
+    run(["chmod", "+x", args.script])
 
     l = logging.INFO
     if(args.verbose): l = logging.DEBUG
