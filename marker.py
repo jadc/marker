@@ -59,6 +59,11 @@ async def gather(csv_file: str, script_file: str, out_file: str, publish: bool):
     with open(Path(csv_file), "r", newline="", encoding="utf-8") as f:
         reader = csv.reader(f)
         next(reader)  # skip headings
+
+        # alert unlinked accounts
+        unlinked = [ x[3] for x in reader if not x[4] ]
+        if(unlinked): logging.info(f"The following GitHub accounts are not linked to a CCID, and therefore, will not be graded: {', '.join(unlinked)}")
+
         submissions = [ grade(x[4], x[6], script_file, publish) for x in reader if x[4] and x[6] ]
     results = await asyncio.gather(*submissions)
 
