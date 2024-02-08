@@ -45,7 +45,7 @@ async def grade(ccid: str, repo: str, script_file: str, publish: bool):
                 # Add feedback file
                 run(["git", "add", FEEDBACK_FILE], cwd=d)
                 run(["git", "commit", "-m", "Feedback"], cwd=d)
-                run(["git", "push", "-u", "origin", "feedback"], cwd=d)
+                run(["git", "push", "-f", "origin", "feedback"], cwd=d)
                 logging.info("Pushed feedback to student's repository")
             
             return (ccid, extract_mark(marking_cmd.stdout), "")
