@@ -28,11 +28,6 @@ def grade(ccid: str, repo: str):
         if cmd.returncode:
             return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
 
-        # Run marking script in current directory, giving it submission directory
-        marking_cmd = run( ["./" + args.script, Path(d)] )
-        if marking_cmd.returncode:
-            return (ccid, f"ERROR ({marking_cmd.returncode}) SEE LOG")
-
         # Reset to latest commit before deadline, if specified
         if deadline:
             # Get latest commit before deadline
@@ -47,6 +42,11 @@ def grade(ccid: str, repo: str):
                 return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
 
             logging.debug(f"Reset student repository to {commit}")
+
+        # Run marking script in current directory, giving it submission directory
+        marking_cmd = run( ["./" + args.script, Path(d)] )
+        if marking_cmd.returncode:
+            return (ccid, f"ERROR ({marking_cmd.returncode}) SEE LOG")
         
         # Upload feedback to branch on student repository
         if args.publish:
