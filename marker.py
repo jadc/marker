@@ -35,10 +35,17 @@ def grade(ccid: str, repo: str):
 
         # Reset to latest commit before deadline, if specified
         if deadline:
-            cmd = run( ["git", "rev-list", "-1", f"--min-age={deadline}"], cwd=d )
+            # Get latest commit before deadline
+            cmd = run( ["git", "rev-list", "-1", f"--min-age={deadline}", BRANCH_NAME], cwd=d )
             if cmd.returncode or not cmd.stdout:
                 return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
             commit = cmd.stdout.strip()
+
+            # Reset local copy to said commit
+            cmd = run( ["git", "reset", "--hard", commit], cwd=d )
+            if cmd.returncode or not cmd.stdout:
+                return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
+
             logging.debug(f"Reset student repository to {commit}")
         
         # Upload feedback to branch on student repository
