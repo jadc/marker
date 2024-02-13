@@ -45,7 +45,7 @@ def grade(ccid: str, repo: str):
 
         # Run marking script in current directory, giving it submission directory
         try:
-            marking_cmd = subprocess.run(["./" + args.script, Path(d)], cwd=d, capture_output=True, text=True, timeout=args.timeout)
+            marking_cmd = subprocess.run(["./" + args.script, Path(d)], capture_output=True, text=True, timeout=args.timeout)
         except subprocess.TimeoutExpired:
             return (ccid, "TIMED OUT")
         if marking_cmd.returncode:
