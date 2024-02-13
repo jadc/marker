@@ -9,11 +9,7 @@ from pathlib import Path
 
 def run(argv, cwd=None):
     logging.debug(f"Running {argv} in {cwd}")
-    try:
-        cmd = subprocess.run(argv, cwd=cwd, capture_output=True, text=True, timeout=args.timeout)
-    except subprocess.TimeoutExpired:
-        logging.error(f"TIMEOUT {argv}")
-        return {"returncode": 1, "stdout": None}
+    cmd = subprocess.run(argv, cwd=cwd, capture_output=True, text=True)
     if cmd.stdout:     logging.debug(cmd.stdout)
     if cmd.returncode: logging.error(f"CODE {cmd.returncode} WITH {argv}\n{cmd.stderr}")
     return cmd
@@ -48,7 +44,10 @@ def grade(ccid: str, repo: str):
             logging.debug(f"Reset student repository to {commit}")
 
         # Run marking script in current directory, giving it submission directory
-        marking_cmd = run( ["./" + args.script, Path(d)] )
+        try:
+            marking_cmd = subprocess.run(["./" + args.script, Path(d)], cwd=cwd, capture_output=True, text=True, timeout=args.timeout)
+        except subprocess.TimeoutExpired:
+            return (ccid, "TIMED OUT")
         if marking_cmd.returncode:
             return (ccid, f"ERROR ({marking_cmd.returncode}) SEE LOG")
         
