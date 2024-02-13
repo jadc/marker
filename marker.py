@@ -48,6 +48,8 @@ def grade(ccid: str, repo: str):
             marking_cmd = subprocess.run(["./" + args.script, Path(d)], capture_output=True, text=True, timeout=args.timeout)
         except subprocess.TimeoutExpired:
             return (ccid, "TIMED OUT")
+        if marking_cmd.stdout:
+            logging.debug(cmd.stdout)
         if marking_cmd.returncode:
             return (ccid, f"ERROR ({marking_cmd.returncode}) SEE LOG")
         
