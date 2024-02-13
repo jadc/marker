@@ -68,7 +68,7 @@ def grade(ccid: str, repo: str):
         return (ccid, extract_mark(marking_cmd.stdout), "")
 
 def extract_mark(stdout: str):
-    r = re.search(r"Total: *(\d+)/(\d+)", stdout)
+    r = re.search(r"Total: *(.+)/(.+)", stdout)
     return round((float(r.group(1)) / float(r.group(2)))*MAX_POINTS, 2)
 
 if __name__ == "__main__":
