@@ -9,7 +9,11 @@ from pathlib import Path
 
 def run(argv, cwd=None):
     logging.debug(f"Running {argv} in {cwd}")
-    cmd = subprocess.run(argv, cwd=cwd, capture_output=True, text=True)
+    try:
+        cmd = subprocess.run(argv, cwd=cwd, capture_output=True, text=True, timeout=args.timeout)
+    except subprocess.TimeoutExpired:
+        logging.error(f"TIMEOUT {argv}")
+        return cmd
     if cmd.stdout:     logging.debug(cmd.stdout)
     if cmd.returncode: logging.error(f"CODE {cmd.returncode} WITH {argv}\n{cmd.stderr}")
     return cmd
@@ -78,6 +82,7 @@ if __name__ == "__main__":
     p.add_argument("-o", "--output", type=str, default="grades.csv", help="output csv including CCID and corresponding lab grade")
     p.add_argument("--deadline", type=str, help="grades latest commit before YYYY-MM-DD at midnight")
     p.add_argument("--publish", action="store_true", help="publishes feedback to students repos; only use after testing!")
+    p.add_argument("--timeout", type=str, default=30, help="time in seconds to wait before aborting a command")
     p.add_argument("-v", "--verbose", action="store_true")
 
     # Globals
