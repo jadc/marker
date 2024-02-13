@@ -13,7 +13,7 @@ def run(argv, cwd=None):
         cmd = subprocess.run(argv, cwd=cwd, capture_output=True, text=True, timeout=args.timeout)
     except subprocess.TimeoutExpired:
         logging.error(f"TIMEOUT {argv}")
-        return cmd
+        return {returncode: 1}
     if cmd.stdout:     logging.debug(cmd.stdout)
     if cmd.returncode: logging.error(f"CODE {cmd.returncode} WITH {argv}\n{cmd.stderr}")
     return cmd
