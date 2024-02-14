@@ -29,17 +29,17 @@ def grade(ccid: str, repo: str):
         if cmd.returncode:
             return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
 
-        # Get latest commit before deadline
-        cmd = run( ["git", "rev-list", "-1", f"--min-age={deadline}", "--", BRANCH_NAME], cwd=d )
-        if cmd.returncode:
-            return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
-        if not cmd.stdout:
-            logging.info("No submission before deadline, skipping...")
-            return (ccid, 0.0, "No submission before deadline")
-        commit = cmd.stdout.strip()
-
         # Reset to latest commit before deadline, if specified
         if deadline:
+            # Get latest commit before deadline
+            cmd = run( ["git", "rev-list", "-1", f"--min-age={deadline}", BRANCH_NAME, "--"], cwd=d )
+            if cmd.returncode:
+                return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
+            if not cmd.stdout:
+                logging.info("No submission before deadline, skipping...")
+                return (ccid, 0.0, "No submission before deadline")
+            commit = cmd.stdout.strip()
+
             cmd = run( ["git", "reset", "--hard", commit], cwd=d )
             if cmd.returncode:
                 return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
@@ -107,8 +107,6 @@ if __name__ == "__main__":
         except ValueError:
             abort("Deadline does not match format: YYYY-MM-DD")
         deadline = int(deadline) + 86400  # midnight on deadline date
-    else:
-        deadline = int( datetime.utcnow().timestamp() )
 
     # Verbosity flag
     logging.basicConfig(format='%(asctime)s %(levelname)s | %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
