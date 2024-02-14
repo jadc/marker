@@ -4,7 +4,8 @@ MAX_POINTS = 10
 FEEDBACK_FILE = "README.md"
 BRANCH_NAME = "main"
 
-import sys, re, logging, argparse, csv, tempfile, subprocess, datetime
+import sys, re, logging, argparse, csv, tempfile, subprocess
+from datetime import datetime
 from pathlib import Path
 
 def run(argv, cwd=None):
@@ -102,12 +103,12 @@ if __name__ == "__main__":
         abort(f"{args.script}: No such file or directory")
     if args.deadline:
         try:
-            deadline = datetime.datetime.strptime( args.deadline, "%Y-%m-%d" ).timestamp()
+            deadline = datetime.strptime( args.deadline, "%Y-%m-%d" ).timestamp()
         except ValueError:
             abort("Deadline does not match format: YYYY-MM-DD")
         deadline = int(deadline) + 86400  # midnight on deadline date
     else:
-        deadline = int(time.time())
+        deadline = int( datetime.utcnow().timestamp() )
 
     # Verbosity flag
     logging.basicConfig(format='%(asctime)s %(levelname)s | %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
