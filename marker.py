@@ -28,15 +28,17 @@ def grade(ccid: str, repo: str):
         if cmd.returncode:
             return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
 
+        # Get latest commit before deadline
+        cmd = run( ["git", "rev-list", "-1", f"--min-age={deadline}", BRANCH_NAME], cwd=d )
+        if cmd.returncode:
+            return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
+        if not cmd.stdout:
+            logging.info("No submission before deadline, skipping...")
+            return (ccid, 0.0, "No submission before deadline")
+        commit = cmd.stdout.strip()
+
         # Reset to latest commit before deadline, if specified
         if deadline:
-            # Get latest commit before deadline
-            cmd = run( ["git", "rev-list", "-1", f"--min-age={deadline}", BRANCH_NAME], cwd=d )
-            if cmd.returncode or not cmd.stdout:
-                return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
-            commit = cmd.stdout.strip()
-
-            # Reset local copy to said commit
             cmd = run( ["git", "reset", "--hard", commit], cwd=d )
             if cmd.returncode:
                 return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
