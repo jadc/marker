@@ -19,14 +19,19 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     with open(Path(args.demo), "r", newline="", encoding="utf-8") as f:
-        demos = dict((x[0], float(x[2])) for x in csv.reader(f) if x[2] and x[2].isdigit())
+        demos = dict((x[0], float(x[2])) for x in csv.reader(f) if x[2] and isfloat(x[2]))
 
     with open(Path(args.lab), "r", newline="", encoding="utf-8") as f:
         labs = list(csv.reader(f))
 
     # Tweak lab CSV if matches CCID in demo grade CSV
-    # (I know this looks awful)
-    labs = [[x[0], round(float(x[1])/2 + demos[x[0]], 2), f"(Demo: {int(demos[x[0]])}/5) {x[2]}"] if isfloat(x[1]) and x[0] in demos else x for x in labs]
+    for x in labs:
+        if x[0] in demos and isfloat(x[1]):
+            print(x[0], x[1], "-> ", end="")
+            x[1] = round(float(x[1])/2 + demos[x[0]], 2)
+            new_score = f"{demos[x[0]]}/5.0"
+            print(x[1], f"({new_score})")
+            x[2] = f"(Demo: {new_score}) {x[2]}"
 
     with open(Path(args.output), "w", newline="", encoding="utf-8") as f:
         csv.writer(f).writerows(labs)
