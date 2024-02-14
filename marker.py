@@ -30,7 +30,7 @@ def grade(ccid: str, repo: str):
             return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
 
         # Get latest commit before deadline
-        cmd = run( ["git", "rev-list", "-1", f"--min-age={deadline}", BRANCH_NAME], cwd=d )
+        cmd = run( ["git", "rev-list", "-1", f"--min-age={deadline}", "--", BRANCH_NAME], cwd=d )
         if cmd.returncode:
             return (ccid, f"ERROR ({cmd.returncode}) SEE LOG")
         if not cmd.stdout:
