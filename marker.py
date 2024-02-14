@@ -14,7 +14,7 @@ def run(argv, cwd=None):
     if cmd.returncode: logging.error(f"CODE {cmd.returncode} WITH {argv}\n{cmd.stderr}")
     return cmd
 
-def error(msg: str) -> None:
+def abort(msg: str) -> None:
     print(f"{sys.argv[0]}: {msg}", file=sys.stderr)
     exit(1)
 
@@ -49,8 +49,9 @@ def grade(ccid: str, repo: str):
         except subprocess.TimeoutExpired:
             return (ccid, "TIMED OUT")
         if marking_cmd.stdout:
-            logging.debug(cmd.stdout)
+            logging.debug(marking_cmd.stdout)
         if marking_cmd.returncode:
+            logging.error(f"CODE {cmd.returncode} WITH {argv}\n{cmd.stderr}")
             return (ccid, f"ERROR ({marking_cmd.returncode}) SEE LOG")
         
         # Upload feedback to branch on student repository
@@ -93,13 +94,15 @@ if __name__ == "__main__":
     deadline = None
 
     # Input validation
-    if( not Path(args.csv).is_file() ): error(f"{args.csv}: No such file or directory")
-    if( not Path(args.script).is_file() ): error(f"{args.script}: No such file or directory")
+    if( not Path(args.csv).is_file() ):
+        abort(f"{args.csv}: No such file or directory")
+    if( not Path(args.script).is_file() ): 
+        abort(f"{args.script}: No such file or directory")
     if args.deadline:
         try:
             deadline = datetime.datetime.strptime( args.deadline, "%Y-%m-%d" ).timestamp()
         except ValueError:
-            error("Deadline does not match format: YYYY-MM-DD")
+            abort("Deadline does not match format: YYYY-MM-DD")
         deadline = int(deadline) + 86400  # midnight on deadline date
 
     # Verbosity flag
