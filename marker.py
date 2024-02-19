@@ -54,7 +54,7 @@ def grade(ccid: str, repo: str):
         if marking_cmd.stdout:
             logging.debug(marking_cmd.stdout)
         if marking_cmd.returncode:
-            logging.error(f"CODE {cmd.returncode} WITH {argv}\n{cmd.stderr}")
+            logging.error(f"CODE {cmd.returncode} WITH MARKING SCRIPT\n{cmd.stderr}")
             return (ccid, f"ERROR ({marking_cmd.returncode}) SEE LOG")
         
         # Upload feedback to branch on student repository
@@ -104,9 +104,9 @@ if __name__ == "__main__":
     if args.deadline:
         try:
             deadline = datetime.strptime( args.deadline, "%Y-%m-%d" ).timestamp()
+            deadline = int(deadline) + 86400  # midnight on deadline date
         except ValueError:
             abort("Deadline does not match format: YYYY-MM-DD")
-        deadline = int(deadline) + 86400  # midnight on deadline date
 
     # Verbosity flag
     logging.basicConfig(format='%(asctime)s %(levelname)s | %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
